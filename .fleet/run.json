@@ -1,0 +1,18 @@
+{
+    "configurations": [
+        {
+            "type": "command",
+            "name": "Install nmp deps",
+            "program": "npm",
+            "args": ["install"],
+            "workingDir": "www",
+        },
+        {
+            "type": "command",
+            "name": "Run",
+            "program": "npm",
+            "args": ["run", "start"],
+            "workingDir": "www",
+        }
+    ],
+}
