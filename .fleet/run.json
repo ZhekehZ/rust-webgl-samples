@@ -2,17 +2,15 @@
     "configurations": [
         {
             "type": "command",
-            "name": "Install nmp deps",
-            "program": "npm",
-            "args": ["install"],
-            "workingDir": "www",
+            "name": "Build",
+            "program": "wasm-pack",
+            "args": ["build", "--target", "web"],
         },
         {
             "type": "command",
-            "name": "Run",
-            "program": "npm",
-            "args": ["run", "start"],
-            "workingDir": "www",
+            "name": "Start python server",
+            "program": "python3",
+            "args": ["-m", "http.server"],
         }
     ],
 }
