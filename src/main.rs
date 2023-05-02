@@ -3,12 +3,12 @@ mod math;
 mod render_loop;
 mod samples;
 mod utils;
-mod web;
 
 use crate::render_loop::RenderLoop;
 use crate::utils::logging::ExtUnwrapLog;
 use utils::logging::init_logger;
 use yew::prelude::*;
+use crate::utils::web;
 
 pub struct App {
     canvas_ref: NodeRef,

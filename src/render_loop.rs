@@ -6,8 +6,8 @@ use web_sys::HtmlCanvasElement;
 use crate::{
     gl::{core::instance::GL, error::GLError},
     samples::sample::Sample,
-    web,
 };
+use crate::utils::web;
 
 #[derive(PartialEq, Eq)]
 pub enum OnErrorResult {
