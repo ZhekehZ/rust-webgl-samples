@@ -1,4 +1,4 @@
-use crate::gl::core::instance::GL;
+use crate::gl;
 
 #[derive(Debug, Clone, Copy)]
 pub enum ShaderType {
@@ -9,8 +9,8 @@ pub enum ShaderType {
 impl ShaderType {
     pub fn to_gl_type(self) -> u32 {
         match self {
-            ShaderType::Vertex => GL::VERTEX_SHADER,
-            ShaderType::Fragment => GL::FRAGMENT_SHADER,
+            ShaderType::Vertex => gl::VERTEX_SHADER,
+            ShaderType::Fragment => gl::FRAGMENT_SHADER,
         }
     }
 }

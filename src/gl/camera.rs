@@ -2,9 +2,12 @@ use glm::Mat4x4;
 
 use crate::gl::shader::uniform_value::UniformValue;
 
-use super::shader::{
-    locations::{SimpleUniformLocation, UniformLocation},
-    program::ShaderProgram,
+use super::{
+    core::instance::GL,
+    shader::{
+        locations::{SimpleUniformLocation, UniformLocation},
+        program::ShaderProgram,
+    },
 };
 
 pub struct Camera {
@@ -45,9 +48,9 @@ impl UniformLocation<Camera> for CameraUniformLocation {
 impl UniformValue for Camera {
     type Location = CameraUniformLocation;
 
-    fn set_to(&self, location: &Self::Location) {
-        self.model.set_to(&location.model);
-        self.view.set_to(&location.view);
-        self.projection.set_to(&location.projection);
+    fn set_to(&self, gl: &GL, location: &Self::Location) {
+        self.model.set_to(gl, &location.model);
+        self.view.set_to(gl, &location.view);
+        self.projection.set_to(gl, &location.projection);
     }
 }

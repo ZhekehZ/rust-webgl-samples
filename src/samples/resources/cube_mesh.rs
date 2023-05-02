@@ -1,6 +1,12 @@
+use std::rc::Rc;
+
 use na::Matrix3xX;
 
-use crate::{faces, gl::mesh::Mesh, vertices};
+use crate::{
+    faces,
+    gl::{core::instance::GL, mesh::Mesh, error::GLError},
+    vertices,
+};
 
 pub fn get_cube_vertices() -> Matrix3xX<f32> {
     vertices![
@@ -19,6 +25,6 @@ pub fn get_cube_faces() -> Matrix3xX<i32> {
     ]
 }
 
-pub fn build_cube_mesh() -> Mesh {
-    Mesh::new(get_cube_vertices(), get_cube_faces())
+pub fn build_cube_mesh(gl: &Rc<GL>) -> Result<Mesh, GLError> {
+    Mesh::try_new(gl, get_cube_vertices(), get_cube_faces())
 }

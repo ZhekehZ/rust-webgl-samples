@@ -2,8 +2,6 @@ use std::marker::PhantomData;
 
 use web_sys::WebGlUniformLocation;
 
-use crate::gl::core::instance::GL;
-
 use super::{program::ShaderProgram, uniform_value::UniformValue};
 
 pub trait UniformLocation<V: UniformValue<Location = Self>> {
@@ -26,9 +24,8 @@ pub struct AttribLocation {
 
 impl<V: UniformValue<Location = Self>> UniformLocation<V> for SimpleUniformLocation<V> {
     fn new(program: &ShaderProgram, name: &str) -> Self {
-        let loc = GL.get_uniform_location(program.as_gl_program(), name);
         Self {
-            loc,
+            loc: program.get_raw_gl_uniform_location(name),
             _phantom: Default::default(),
         }
     }

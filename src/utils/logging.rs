@@ -1,3 +1,7 @@
+use wasm_bindgen::JsValue;
+
+use crate::gl::{error::GLError, shader::error::ShaderError};
+
 mod ffi {
     use wasm_bindgen::prelude::*;
     #[wasm_bindgen]
@@ -35,4 +39,24 @@ pub fn init_logger(level: log::LevelFilter) -> Result<(), log::SetLoggerError> {
     log::set_logger(&LOGGER)?;
     log::set_max_level(level);
     Ok(())
+}
+
+pub trait ExtUnwrapLog {
+    type Output;
+
+    fn unwrap_log(self) -> Self::Output;
+}
+
+impl<T, E: std::fmt::Debug> ExtUnwrapLog for Result<T, E> {
+    type Output = T;
+
+    fn unwrap_log(self) -> Self::Output {
+        match self {
+            Ok(value) => value,
+            Err(error) => {
+                log::error!("{:#?}", error);
+                panic!("Unexpected error");
+            },
+        }
+    }
 }

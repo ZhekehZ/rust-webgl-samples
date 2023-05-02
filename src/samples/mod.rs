@@ -1,3 +1,4 @@
-pub mod simple_cube;
+pub mod sample;
+pub mod cubes;
 
 mod resources;

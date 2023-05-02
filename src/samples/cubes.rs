@@ -1,29 +1,31 @@
+use std::rc::Rc;
+
 use super::resources::simple_shaders::{FRAGMENT_SHADER, VERTEX_SHADER};
-use crate::gl::camera::Camera;
+use super::sample::Sample;
 use crate::gl::core::instance::GL;
+use crate::gl::error::GLError;
 use crate::gl::mesh::Mesh;
 use crate::gl::shader::program::ShaderProgram;
 use crate::gl::shader::shader_type::ShaderType;
+use crate::gl::{self, camera::Camera};
 use crate::samples::resources::cube_mesh::build_cube_mesh;
-use glm::{look_at, perspective, Mat4x4, Vec3};
-use wasm_bindgen::JsValue;
+use glm::{look_at, perspective, Vec3};
 
-pub struct App {
+pub struct Cubes {
+    gl: Rc<GL>,
     mesh: Mesh,
     shader: ShaderProgram,
     camera: Camera,
 }
 
-impl App {
-    pub fn new() -> Result<App, JsValue> {
-        GL.force_initialization();
-
-        let mesh = build_cube_mesh();
-        let shader = ShaderProgram::builder()
+impl Sample for Cubes {
+    fn try_new(gl: GL) -> Result<Self, GLError> {
+        let gl = Rc::new(gl);
+        let mesh = build_cube_mesh(&gl)?;
+        let shader = ShaderProgram::builder(&gl)
             .add_source(ShaderType::Vertex, VERTEX_SHADER.into())
             .add_source(ShaderType::Fragment, FRAGMENT_SHADER.into())
-            .build()
-            .unwrap();
+            .build()?;
 
         let model = glm::Mat4::new_scaling(0.25);
         let view = look_at(
@@ -39,16 +41,17 @@ impl App {
         };
 
         Ok(Self {
+            gl,
             mesh,
             shader,
             camera,
         })
     }
 
-    pub fn render(&mut self) -> Result<(), JsValue> {
-        let width = GL.drawing_buffer_width();
-        let height = GL.drawing_buffer_height();
-        GL.viewport(0, 0, width, height);
+    fn render(&mut self) -> Result<(), GLError> {
+        let width = self.gl.drawing_buffer_width();
+        let height = self.gl.drawing_buffer_height();
+        self.gl.viewport(0, 0, width, height);
 
         self.camera.model = glm::rotate(&self.camera.model, 0.01, &glm::Vec3::y());
 
@@ -56,9 +59,9 @@ impl App {
         self.camera.projection =
             glm::perspective(aspect, std::f32::consts::FRAC_PI_3 * 2.0, 0.1, 10.0);
 
-        GL.clear(GL::COLOR_BUFFER_BIT);
-        GL.clear(GL::DEPTH_BUFFER_BIT);
-        GL.clear_color(0.8, 0.9, 0.9, 1.0);
+        self.gl.clear(gl::COLOR_BUFFER_BIT);
+        self.gl.clear(gl::DEPTH_BUFFER_BIT);
+        self.gl.clear_color(0.8, 0.9, 0.9, 1.0);
 
         let base_model = self.camera.model;
         for i in -4..=4 {

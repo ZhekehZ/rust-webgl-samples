@@ -1,5 +1,8 @@
+use std::rc::Rc;
+
 use na::Matrix3xX;
 
+use crate::gl;
 use crate::gl::core::utils::SizeInBytes;
 use crate::gl::shader::program::ShaderProgram;
 use crate::math::compute_normals::compute_normals;
@@ -7,17 +10,19 @@ use crate::math::compute_normals::compute_normals;
 use super::buffers::object::GLObject;
 use super::camera::Camera;
 use super::core::instance::GL;
+use super::error::GLError;
 
 pub struct Mesh {
     pub vertices: Matrix3xX<f32>,
     pub faces: Matrix3xX<i32>,
+    gl: Rc<GL>,
     object: GLObject,
 }
 
 impl Mesh {
-    pub fn new(vertices: Matrix3xX<f32>, faces: Matrix3xX<i32>) -> Self {
+    pub fn try_new(gl: &Rc<GL>, vertices: Matrix3xX<f32>, faces: Matrix3xX<i32>) -> Result<Self, GLError> {
         let normals = compute_normals(&vertices, &faces);
-        let object = GLObject::try_new().unwrap();
+        let object = GLObject::try_new(gl)?;
 
         if let binded = object.bind() {
             binded.init_dyn_array_buffer(vertices.size_in_bytes() + normals.size_in_bytes());
@@ -26,11 +31,12 @@ impl Mesh {
             binded.upload_static_elem_buffer(&faces);
         }
 
-        Self {
+        Ok(Self {
             vertices,
             faces,
+            gl: Rc::clone(gl),
             object,
-        }
+        })
     }
 
     pub fn update_vertices(&mut self, update: impl FnOnce(&mut Matrix3xX<f32>)) {
@@ -42,7 +48,7 @@ impl Mesh {
     }
 
     pub fn render(&self, shader: &ShaderProgram, camera: &Camera) {
-        GL.enable(GL::DEPTH_TEST);
+        self.gl.enable(gl::DEPTH_TEST);
 
         let shader_use = shader.use_program();
 
@@ -64,6 +70,6 @@ impl Mesh {
             binded.draw_triangles(&shader_use, self.faces.ncols());
         }
 
-        GL.disable(GL::DEPTH_TEST);
+        self.gl.disable(gl::DEPTH_TEST);
     }
 }

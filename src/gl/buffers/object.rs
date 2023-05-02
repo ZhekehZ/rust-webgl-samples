@@ -1,24 +1,28 @@
+use std::rc::Rc;
+
 use crate::gl::core::instance::GL;
 use web_sys::{WebGlBuffer, WebGlVertexArrayObject};
 
 use super::binded_obj_ctx::BindedObjCtx;
-use super::object_error::GLObjectError::{self, CreateBufferError, CreateVAOError};
+use super::error::GLObjectError::{self, CreateBufferError, CreateVAOError};
 
 pub struct GLObject {
     vertex_array_object: WebGlVertexArrayObject,
     data_buffer: WebGlBuffer,
     index_buffer: WebGlBuffer,
+    gl: Rc<GL>,
 }
 
 impl GLObject {
-    pub fn try_new() -> Result<Self, GLObjectError> {
-        let vertex_array_object = GL.create_vertex_array().ok_or(CreateVAOError)?;
-        let data_buffer = GL.create_buffer().ok_or(CreateBufferError)?;
-        let index_buffer = GL.create_buffer().ok_or(CreateBufferError)?;
+    pub fn try_new(gl: &Rc<GL>) -> Result<Self, GLObjectError> {
+        let vertex_array_object = gl.create_vertex_array().ok_or(CreateVAOError)?;
+        let data_buffer = gl.create_buffer().ok_or(CreateBufferError)?;
+        let index_buffer = gl.create_buffer().ok_or(CreateBufferError)?;
         Ok(Self {
             vertex_array_object,
             data_buffer,
             index_buffer,
+            gl: Rc::clone(gl),
         })
     }
 
@@ -36,14 +40,14 @@ impl GLObject {
 
     #[must_use]
     pub fn bind(&self) -> BindedObjCtx {
-        BindedObjCtx::new(self)
+        BindedObjCtx::new(self.gl.as_ref(), self)
     }
 }
 
 impl Drop for GLObject {
     fn drop(&mut self) {
-        GL.delete_buffer(Some(&self.data_buffer));
-        GL.delete_buffer(Some(&self.index_buffer));
-        GL.delete_vertex_array(Some(&self.vertex_array_object));
+        self.gl.delete_buffer(Some(&self.data_buffer));
+        self.gl.delete_buffer(Some(&self.index_buffer));
+        self.gl.delete_vertex_array(Some(&self.vertex_array_object));
     }
 }
