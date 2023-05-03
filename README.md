@@ -1,4 +1,4 @@
-# arap-webgl
+# Rust WebGL samples
 
 ### Prerequirements
 - cargo
