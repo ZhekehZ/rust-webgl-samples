@@ -3,16 +3,22 @@ use std::{cell::RefCell, rc::Rc};
 use wasm_bindgen::{prelude::Closure, JsCast};
 use web_sys::HtmlCanvasElement;
 
+use crate::utils::web;
 use crate::{
     gl::{core::instance::GL, error::GLError},
     samples::sample::Sample,
 };
-use crate::utils::web;
 
 #[derive(PartialEq, Eq)]
 pub enum OnErrorResult {
     Continue,
     Stop,
+}
+
+pub struct OnIterResult {
+    pub render_frame: bool,
+    pub update_logic: bool,
+    pub stop_execution: bool,
 }
 
 pub struct RenderLoop<S>
@@ -21,7 +27,8 @@ where
 {
     sample: S,
     on_error: Box<dyn FnMut(GLError) -> OnErrorResult + 'static>,
-    on_iter: Box<dyn FnMut() + 'static>,
+    on_iter: Box<dyn FnMut() -> OnIterResult + 'static>,
+    last_update_time: f64,
 }
 
 impl<S> RenderLoop<S>
@@ -33,7 +40,12 @@ where
         Ok(Self {
             sample: S::try_new(gl)?,
             on_error: Box::new(|_| OnErrorResult::Stop),
-            on_iter: Box::new(|| ()),
+            on_iter: Box::new(|| OnIterResult {
+                render_frame: true,
+                update_logic: true,
+                stop_execution: false,
+            }),
+            last_update_time: 0.0,
         })
     }
 
@@ -42,7 +54,7 @@ where
         self
     }
 
-    pub fn on_iter(mut self, cb: impl FnMut() + 'static) -> Self {
+    pub fn on_iter(mut self, cb: impl FnMut() -> OnIterResult + 'static) -> Self {
         self.on_iter = Box::new(cb);
         self
     }
@@ -51,13 +63,37 @@ where
         let callback = Rc::new(RefCell::new(None));
         let closure = Closure::wrap(Box::new({
             let callback = Rc::clone(&callback);
+            self.last_update_time = js_sys::Date::now();
             move || {
-                if let Err(error) = self.sample.render() {
-                    if (self.on_error)(error) == OnErrorResult::Stop {
-                        return;
+                let OnIterResult {
+                    render_frame: render,
+                    update_logic,
+                    stop_execution,
+                } = (self.on_iter)();
+
+                if stop_execution {
+                    return;
+                }
+
+                if update_logic {
+                    let curr_time = js_sys::Date::now();
+                    let d_time = curr_time - self.last_update_time;
+                    self.last_update_time = curr_time;
+                    if let Err(e) = self.sample.update(d_time) {
+                        if (self.on_error)(e) == OnErrorResult::Stop {
+                            return;
+                        }
                     }
                 }
-                (self.on_iter)();
+
+                if render {
+                    if let Err(e) = self.sample.render() {
+                        if (self.on_error)(e) == OnErrorResult::Stop {
+                            return;
+                        }
+                    }
+                }
+
                 request_animation_frame(callback.borrow().as_ref().unwrap());
             }
         }) as Box<dyn FnMut()>);

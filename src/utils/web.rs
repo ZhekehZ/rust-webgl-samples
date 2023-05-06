@@ -1,9 +1,7 @@
 use crate::utils::logging::ExtUnwrapLog;
 
 pub fn window() -> web_sys::Window {
-    web_sys::window()
-        .ok_or("Can't access window")
-        .unwrap_log()
+    web_sys::window().ok_or("Can't access window").unwrap_log()
 }
 
 pub fn document() -> web_sys::Document {

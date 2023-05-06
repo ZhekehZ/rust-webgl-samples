@@ -1,4 +1,4 @@
-pub mod sample;
 pub mod cubes;
+pub mod sample;
 
 mod resources;

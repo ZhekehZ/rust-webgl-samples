@@ -48,12 +48,15 @@ impl Sample for Cubes {
         })
     }
 
+    fn update(&mut self, d_time: f64) -> Result<(), GLError> {
+        self.camera.model = glm::rotate(&self.camera.model, d_time as f32 / 8000.0, &glm::Vec3::y());
+        Ok(())
+    }
+
     fn render(&mut self) -> Result<(), GLError> {
         let width = self.gl.drawing_buffer_width();
         let height = self.gl.drawing_buffer_height();
         self.gl.viewport(0, 0, width, height);
-
-        self.camera.model = glm::rotate(&self.camera.model, 0.01, &glm::Vec3::y());
 
         let aspect = width as f32 / height as f32;
         self.camera.projection =

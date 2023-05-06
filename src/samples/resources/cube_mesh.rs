@@ -4,7 +4,7 @@ use na::Matrix3xX;
 
 use crate::{
     faces,
-    gl::{core::instance::GL, mesh::Mesh, error::GLError},
+    gl::{core::instance::GL, error::GLError, mesh::Mesh},
     vertices,
 };
 
@@ -26,5 +26,7 @@ pub fn get_cube_faces() -> Matrix3xX<i32> {
 }
 
 pub fn build_cube_mesh(gl: &Rc<GL>) -> Result<Mesh, GLError> {
-    Mesh::try_new(gl, get_cube_vertices(), get_cube_faces())
+    Mesh::new_builder(get_cube_vertices(), get_cube_faces())
+        .build_normals()
+        .build(gl)
 }

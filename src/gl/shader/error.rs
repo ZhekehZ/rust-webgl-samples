@@ -1,5 +1,5 @@
-use thiserror::Error;
 use super::shader_type::ShaderType;
+use thiserror::Error;
 
 #[allow(clippy::enum_variant_names)]
 #[derive(Error, Debug, Clone)]
@@ -18,5 +18,6 @@ fn simple_shader_type_name(t: &ShaderType) -> String {
     match *t {
         ShaderType::Vertex => "vertex",
         ShaderType::Fragment => "fragment",
-    }.into()
+    }
+    .into()
 }

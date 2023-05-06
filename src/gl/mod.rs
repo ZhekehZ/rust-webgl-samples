@@ -3,9 +3,9 @@
 pub mod buffers;
 pub mod camera;
 pub mod core;
+pub mod error;
 pub mod mesh;
 pub mod shader;
-pub mod error;
 
 use web_sys::WebGl2RenderingContext;
 

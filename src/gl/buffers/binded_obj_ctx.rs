@@ -36,7 +36,7 @@ impl<'a> BindedObjCtx<'a> {
 
     pub fn upload_static_elem_buffer(&self, array: &impl AsSlice<i32>) {
         unsafe {
-            self.gl.buffer_data_with_array_buffer_view(
+self.gl.buffer_data_with_array_buffer_view(
                 gl::ELEMENT_ARRAY_BUFFER,
                 &js_sys::Int32Array::view(array.as_slice()),
                 gl::STATIC_DRAW,
@@ -47,11 +47,6 @@ impl<'a> BindedObjCtx<'a> {
     pub fn init_dyn_array_buffer(&self, size: usize) {
         self.gl
             .buffer_data_with_i32(gl::ARRAY_BUFFER, size as i32, gl::DYNAMIC_DRAW);
-    }
-
-    pub fn init_dyn_elem_buffer(&self, size: usize) {
-        self.gl
-            .buffer_data_with_i32(gl::ELEMENT_ARRAY_BUFFER, size as i32, gl::DYNAMIC_DRAW);
     }
 
     pub fn upload_sub_array(&self, array: &impl AsSlice<f32>, offset: usize) {

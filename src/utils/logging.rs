@@ -56,7 +56,7 @@ impl<T, E: std::fmt::Debug> ExtUnwrapLog for Result<T, E> {
             Err(error) => {
                 log::error!("{:#?}", error);
                 panic!("Unexpected error");
-            },
+            }
         }
     }
 }
