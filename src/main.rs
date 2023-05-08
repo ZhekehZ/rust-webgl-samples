@@ -15,6 +15,9 @@ use yew::prelude::*;
 const FRAMES_PER_SECOND: f64 = 30.0;
 const FRAME_TIME: f64 = 1000.0 / FRAMES_PER_SECOND;
 
+const FPS_UPDATE_PER_SECOND: f64 = 1.0;
+const FPS_UPDATE_TIME: f64 = 1000.0 / FPS_UPDATE_PER_SECOND;
+
 const LOGIC_UPDATE_PER_SECOND: f64 = 30.0;
 const LOGIC_UPDATE_TIME: f64 = 1000.0 / LOGIC_UPDATE_PER_SECOND;
 
@@ -41,7 +44,7 @@ impl Component for App {
                 <div ref={self.fps_counter_ref.clone()} id="fps-counter"> {"fps:___"} </div>
                 <div id="fps-limiter">
                     <input ref={self.fps_limiter_ref.clone()} type="checkbox"/>
-                    {"limit"}
+                    {"limit at 30"}
                 </div>
             </div>
         }
@@ -59,6 +62,7 @@ impl Component for App {
 
             let mut prev_render_time = js_sys::Date::now();
             let mut prev_fps_update_time = prev_render_time;
+            let mut prev_logic_update_time = prev_render_time;
             let mut frames_draw = 0;
 
             RenderLoop::<samples::cubes::Cubes>::create(&canvas)
@@ -69,6 +73,7 @@ impl Component for App {
                     canvas.set_height(height);
 
                     let curr_time = js_sys::Date::now();
+                    let time_from_last_logic_update = curr_time - prev_logic_update_time;
                     let time_from_last_render = curr_time - prev_render_time;
                     let time_from_last_fps_update = curr_time - prev_fps_update_time;
 
@@ -77,14 +82,20 @@ impl Component for App {
                         .unwrap()
                         .checked();
 
-                    let update_logic = time_from_last_fps_update >= LOGIC_UPDATE_TIME;
+                    let update_fps = time_from_last_fps_update >= FPS_UPDATE_TIME;
+                    let update_logic = time_from_last_logic_update >= LOGIC_UPDATE_TIME;
                     let render_frame = !fps_limit_enabled || time_from_last_render >= FRAME_TIME;
 
                     if update_logic {
+                        let time_overhead = time_from_last_logic_update.rem_euclid(LOGIC_UPDATE_TIME);
+                        prev_logic_update_time = curr_time - time_overhead;
+                    }
+
+                    if update_fps {
                         let fps = frames_draw as f64 * 1000.0 / time_from_last_fps_update + 0.5;
                         let text = format!("fps:{:03}", fps as usize);
 
-                        let time_overhead = time_from_last_fps_update.rem_euclid(LOGIC_UPDATE_TIME);
+                        let time_overhead = time_from_last_fps_update.rem_euclid(FPS_UPDATE_TIME);
                         frames_draw = 0;
                         prev_fps_update_time = curr_time - time_overhead;
 
@@ -93,7 +104,6 @@ impl Component for App {
                             .unwrap()
                             .set_inner_text(text.as_str());
                     }
-
 
                     if render_frame {
                         let time_overhead = time_from_last_render.rem_euclid(FRAME_TIME);
